@@ -39,7 +39,7 @@ Invoked as `jobtrack <command>` after `pip install -e .`, or `python -m jobtrack
 | `edit ID` | Change any field except status (`--company`, `--role`, `--link`, `--location`, `--source`, `--notes`, `--date-applied`) |
 | `delete ID` | Shows the application, asks `Delete? [y/N]`, then deletes. `--yes` skips the question |
 | `summary` | Counts per status, response rate, average days from applied to first response. `--from` / `--to` limit it by applied date |
-| `export PATH` | Write all applications to a CSV file |
+| `export PATH` | Write all applications to a CSV file. `--overwrite` replaces an existing file |
 | `import PATH` | Read applications from a CSV file. `--dry-run` validates without writing |
 
 Global options: `--db PATH` (or env `JOBTRACK_DB`), `--version`, `--help` on every command.
@@ -174,7 +174,8 @@ README examples are copied from `examples/demo_output.txt`. A test re-runs the d
 |--------|--------|
 | `test_db.py` | schema created on a new file and left alone on an existing one; insert / get / update / delete; CHECK refuses an unknown status; deleting an application removes its history; filter queries; ids not reused |
 | `test_validation.py` | valid and invalid dates (`2026-02-30`, `10/03/2026`, empty), `today`, `+7d`, unknown status with the list of valid ones in the message, blank company or role |
-| `test_status_rules.py` | every pair of the 7×7 transition table, parametrised; skipping stages; closed states; `--force`; same status; applied date set on `saved` → `applied`; change dated before the applied date; `first_response_date` set once, not overwritten, cleared on a forced move back |
+| `test_status_rules.py` | every pair of the 7×7 transition table, parametrised; skipping stages; closed states; `--force`; same status |
+| `test_status_changes.py` | the rules applied to stored applications: applied date set on `saved` → `applied`; change dated before the applied date; `first_response_date` set once, not overwritten, cleared on a forced move back; history entries |
 | `test_followup.py` | set, change, clear; due today, overdue by N, tomorrow not due; `--within`; closed applications left out; ordering |
 | `test_summary.py` | empty database gives zeros and `n/a`, no division error; counts per status including zeros; response rate and average days checked against hand-worked values; `saved` not counted; withdrawn not a response; date range |
 | `test_service.py` | add, edit, delete, unknown id, list filters alone and combined |
@@ -233,7 +234,21 @@ Small, one concern each, existing git identity, no `Co-Authored-By` or session l
 3. **GitHub repo name for the CI badge**: `Omkar210404/Job-Tracker-CLI`, following `Sap-Data-Cleaner` and `News-Lens`.
 4. **Status strictness**: the table in section 4, with `--force` for corrections.
 
-## 13. Deviations from brain.md
+## 13. Changes made while building
+
+Small points decided during the build, all inside the approved plan:
+
+- **Future dates are refused** for the applied date and for a status change. A follow-up date may be any date.
+- **A forced move back to `saved` also clears the applied date**, so "saved has no applied date" stays true for the summary.
+- **`withdrawn` may have no applied date** (a saved job dropped before applying). Such an application is not counted as applied.
+- **`export` refuses to overwrite an existing file** unless `--overwrite` is given.
+- **`list --status` accepts commas** (`--status applied,screening`) as well as repeating the option.
+- **CSV header names are forgiving** about case, spaces and hyphens (`Date Applied` is read as `date_applied`). Unknown columns are an error, to catch typos.
+- **Service-level status tests live in `tests/test_status_changes.py`**; `tests/test_status_rules.py` holds the pure transition table.
+- **History dates are not checked against each other**, only against the applied date and today. An ordering check would have made `--force` corrections impossible. Listed as a limitation.
+- **Typer 0.27 could be made plain** (`rich_markup_mode=None`), so the argparse fallback was not needed.
+
+## 14. Deviations from brain.md
 
 - No `.env.example`: no secrets or API keys.
 - No screenshots: CLI only, so the README shows real terminal output.
