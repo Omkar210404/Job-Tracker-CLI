@@ -9,13 +9,15 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import replace
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from jobtracker import db, status_rules
 from jobtracker.errors import NotFoundError, ValidationError
 from jobtracker.models import (
+    CLOSED_STATUSES,
     RESPONSE_STATUSES,
     Application,
+    DueItem,
     NewApplication,
     Status,
     StatusChange,
@@ -300,6 +302,32 @@ class TrackerService:
                 note=clean_optional(note),
             )
         return self.get(app_id)
+
+    # --- follow-ups ---------------------------------------------------------
+
+    def set_follow_up(self, app_id: int, when: date | None) -> Application:
+        """Set the follow-up date, or remove it with None."""
+        self.get(app_id)
+        with self.conn:
+            db.update_application(self.conn, app_id, {"follow_up_date": when}, now=_now())
+        return self.get(app_id)
+
+    def due(self, *, today: date, within: int = 0) -> list[DueItem]:
+        """Open applications whose follow-up date is today or earlier, most overdue first.
+
+        `within` also includes follow-ups in the next N days. Rejected and
+        withdrawn applications are left out; their date stays stored.
+        """
+        if within < 0:
+            raise ValidationError("The number of days to look ahead cannot be negative.")
+        candidates = db.query_applications(
+            self.conn, follow_up_until=today + timedelta(days=within), sort="followup"
+        )
+        return [
+            DueItem(application=app, days_overdue=(today - app.follow_up_date).days)
+            for app in candidates
+            if app.status not in CLOSED_STATUSES
+        ]
 
 
 def _check_range(date_from: date | None, date_to: date | None) -> None:
