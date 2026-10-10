@@ -510,6 +510,24 @@ def test_default_database_lives_in_the_home_folder(tmp_path, monkeypatch):
     assert default_db_path() == tmp_path / ".jobtrack" / "jobtrack.db"
 
 
+def test_default_database_is_created_on_first_use(tmp_path):
+    """No --db and no JOBTRACK_DB, in a real process whose home folder is a temp folder."""
+    env = {
+        **os.environ,
+        "HOME": str(tmp_path),
+        "USERPROFILE": str(tmp_path),
+        "JOBTRACK_TODAY": TODAY,
+        "PYTHONPATH": str(REPO_ROOT),
+    }
+    env.pop("JOBTRACK_DB", None)
+    result = subprocess.run(
+        [sys.executable, "-m", "jobtracker", "add", "-c", "Home Example", "-r", "Developer"],
+        capture_output=True, text=True, env=env, cwd=tmp_path, timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / ".jobtrack" / "jobtrack.db").is_file()
+
+
 def test_bad_today_override_is_reported(db_path):
     result = runner.invoke(app, ["--db", str(db_path), "list"], env={"JOBTRACK_TODAY": "soon"})
     assert result.exit_code == 1

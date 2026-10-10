@@ -424,7 +424,7 @@ The database has two tables: `applications` (one row each) and `status_history` 
 python -m pytest
 ```
 
-Last local run, on 2026-10-10 with Windows 11 and Python 3.11.9: **393 passed**.
+Last local run, on 2026-10-10 with Windows 11 and Python 3.11.9: **394 passed**.
 
 | File | What it covers |
 |------|----------------|
