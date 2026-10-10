@@ -11,7 +11,7 @@ import sqlite3
 from dataclasses import replace
 from datetime import date, datetime
 
-from jobtracker import db
+from jobtracker import db, status_rules
 from jobtracker.errors import NotFoundError, ValidationError
 from jobtracker.models import (
     RESPONSE_STATUSES,
@@ -243,6 +243,63 @@ class TrackerService:
         with self.conn:
             db.delete_application(self.conn, app_id)
         return app
+
+    # --- status -------------------------------------------------------------
+
+    def change_status(
+        self,
+        app_id: int,
+        new_status: Status,
+        *,
+        on: date,
+        today: date,
+        note: str | None = None,
+        force: bool = False,
+    ) -> Application:
+        """Move an application to `new_status`, dated `on`, and record it in the history.
+
+        Besides the status itself this keeps two dates in step:
+        - the applied date is set to `on` when the application leaves 'saved'
+          for anything but 'withdrawn', and removed on a forced move back to 'saved';
+        - the first response date is set the first time a response status is
+          reached, and removed on a forced move back to 'saved' or 'applied'.
+        """
+        app = self.get(app_id)
+        old_status = app.status
+        status_rules.check_move(old_status, new_status, force=force)
+        if on > today:
+            raise ValidationError(f"The status change date {on} is in the future.")
+
+        changes: dict[str, object] = {"status": new_status}
+        applied = app.date_applied
+        if new_status is Status.SAVED:
+            applied = None
+            changes["date_applied"] = None
+        elif applied is None and new_status is not Status.WITHDRAWN:
+            applied = on
+            changes["date_applied"] = on
+        if applied is not None and on < applied:
+            raise ValidationError(
+                f"The status change date {on} is before the applied date {applied}."
+            )
+
+        if new_status in (Status.SAVED, Status.APPLIED):
+            if app.first_response_date is not None:
+                changes["first_response_date"] = None
+        elif new_status in RESPONSE_STATUSES and app.first_response_date is None:
+            changes["first_response_date"] = on
+
+        with self.conn:
+            db.update_application(self.conn, app_id, changes, now=_now())
+            db.insert_status_change(
+                self.conn,
+                app_id,
+                old_status=old_status,
+                new_status=new_status,
+                changed_on=on,
+                note=clean_optional(note),
+            )
+        return self.get(app_id)
 
 
 def _check_range(date_from: date | None, date_to: date | None) -> None:
