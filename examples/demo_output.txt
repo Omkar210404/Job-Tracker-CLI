@@ -1,0 +1,354 @@
+# job-tracker-cli demo
+# SYNTHETIC SAMPLE DATA: every company, role and link below is invented.
+# The database is a temporary file that is deleted when the demo ends.
+# "Today" is fixed at 2026-03-20 so the output is the same on every run.
+
+## Add applications
+
+$ jobtrack add --company "Northwind Example Ltd" --role "Junior Python Developer" --location Pune --source "job board" --link https://example.com/jobs/1 --notes "synthetic sample" --date-applied 2026-02-10
+Added application 1: Junior Python Developer at Northwind Example Ltd (applied on 2026-02-10).
+
+$ jobtrack add --company "Bluefield Sample Systems" --role "ML Engineer Intern" --location Remote --source referral --link https://example.com/jobs/2 --notes "synthetic sample" --date-applied 2026-02-12
+Added application 2: ML Engineer Intern at Bluefield Sample Systems (applied on 2026-02-12).
+
+$ jobtrack add --company "Cedar Demo Analytics" --role "Data Analyst" --location Mumbai --source "company site" --link https://example.com/jobs/3 --notes "synthetic sample" --date-applied 2026-02-18
+Added application 3: Data Analyst at Cedar Demo Analytics (applied on 2026-02-18).
+
+$ jobtrack add --company "Harbor Placeholder Tech" --role "Backend Developer (Python)" --location Bengaluru --source "job board" --link https://example.com/jobs/4 --notes "synthetic sample" --date-applied 2026-02-20
+Added application 4: Backend Developer (Python) at Harbor Placeholder Tech (applied on 2026-02-20).
+
+$ jobtrack add --company "Lumen Fictional Labs" --role "AI Engineer (Fresher)" --location Hyderabad --source campus --link https://example.com/jobs/5 --notes "synthetic sample" --date-applied 2026-02-25
+Added application 5: AI Engineer (Fresher) at Lumen Fictional Labs (applied on 2026-02-25).
+
+$ jobtrack add --company "Quartz Mock Software" --role "Python Developer" --location Remote --source "job board" --link https://example.com/jobs/6 --notes "synthetic sample" --date-applied 2026-03-02
+Added application 6: Python Developer at Quartz Mock Software (applied on 2026-03-02).
+
+$ jobtrack add --company "Pinecrest Sample Data" --role "Junior Data Scientist" --location Pune --source referral --link https://example.com/jobs/7 --notes "synthetic sample" --date-applied 2026-03-05
+Added application 7: Junior Data Scientist at Pinecrest Sample Data (applied on 2026-03-05).
+
+$ jobtrack add --company "Orchid Example Works" --role "NLP Engineer Intern" --location Mumbai --source "company site" --link https://example.com/jobs/8 --notes "synthetic sample" --date-applied 2026-03-09
+Added application 8: NLP Engineer Intern at Orchid Example Works (applied on 2026-03-09).
+
+$ jobtrack add --company "Tidewater Demo Co" --role "Software Engineer Trainee" --location Chennai --source "job board" --link https://example.com/jobs/9 --notes "synthetic sample" --date-applied 2026-03-12
+Added application 9: Software Engineer Trainee at Tidewater Demo Co (applied on 2026-03-12).
+
+$ jobtrack add --company "Maple Placeholder AI" --role "ML Engineer (Entry Level)" --location Remote --source campus --link https://example.com/jobs/10 --notes "synthetic sample" --date-applied 2026-03-16
+Added application 10: ML Engineer (Entry Level) at Maple Placeholder AI (applied on 2026-03-16).
+
+$ jobtrack add --company "Granite Fictional Systems" --role "Data Engineer Trainee" --location Pune --source "job board" --link https://example.com/jobs/11 --notes "synthetic sample" --status saved
+Added application 11: Data Engineer Trainee at Granite Fictional Systems (saved, not applied yet).
+
+$ jobtrack add --company "Willow Mock Robotics" --role "Computer Vision Intern" --location Bengaluru --source referral --link https://example.com/jobs/12 --notes "synthetic sample" --status saved
+Added application 12: Computer Vision Intern at Willow Mock Robotics (saved, not applied yet).
+
+## Move applications along the pipeline
+
+$ jobtrack status 1 screening --date 2026-02-17 --note "phone screen booked"
+Application 1: applied -> screening on 2026-02-17.
+First response recorded, 7 days after applying.
+
+$ jobtrack status 1 interview --date 2026-02-26
+Application 1: screening -> interview on 2026-02-26.
+
+$ jobtrack status 1 offer --date 2026-03-12
+Application 1: interview -> offer on 2026-03-12.
+
+$ jobtrack status 2 rejected --date 2026-02-24
+Application 2: applied -> rejected on 2026-02-24.
+First response recorded, 12 days after applying.
+
+$ jobtrack status 3 screening --date 2026-03-03
+Application 3: applied -> screening on 2026-03-03.
+First response recorded, 13 days after applying.
+
+$ jobtrack status 5 interview --date 2026-03-09 --note "skipped the phone screen"
+Application 5: applied -> interview on 2026-03-09.
+First response recorded, 12 days after applying.
+
+$ jobtrack status 6 withdrawn --date 2026-03-10 --note "role moved to another city"
+Application 6: applied -> withdrawn on 2026-03-10.
+
+$ jobtrack status 7 screening --date 2026-03-16
+Application 7: applied -> screening on 2026-03-16.
+First response recorded, 11 days after applying.
+
+$ jobtrack status 8 rejected --date 2026-03-19
+Application 8: applied -> rejected on 2026-03-19.
+First response recorded, 10 days after applying.
+
+## Set follow-up dates
+
+$ jobtrack followup 3 2026-03-18
+Application 3: follow-up set for 2026-03-18.
+
+$ jobtrack followup 4 2026-03-06
+Application 4: follow-up set for 2026-03-06.
+
+$ jobtrack followup 5 today
+Application 5: follow-up set for 2026-03-20.
+
+$ jobtrack followup 7 +4d
+Application 7: follow-up set for 2026-03-24.
+
+$ jobtrack followup 9 2026-03-26
+Application 9: follow-up set for 2026-03-26.
+
+## List and filter
+
+$ jobtrack list
+ID  Company                    Role                        Status     Applied     Follow-up   Location
+--  -------------------------  --------------------------  ---------  ----------  ----------  ---------
+ 1  Northwind Example Ltd      Junior Python Developer     offer      2026-02-10  -           Pune
+ 2  Bluefield Sample Systems   ML Engineer Intern          rejected   2026-02-12  -           Remote
+ 3  Cedar Demo Analytics       Data Analyst                screening  2026-02-18  2026-03-18  Mumbai
+ 4  Harbor Placeholder Tech    Backend Developer (Python)  applied    2026-02-20  2026-03-06  Bengaluru
+ 5  Lumen Fictional Labs       AI Engineer (Fresher)       interview  2026-02-25  2026-03-20  Hyderabad
+ 6  Quartz Mock Software       Python Developer            withdrawn  2026-03-02  -           Remote
+ 7  Pinecrest Sample Data      Junior Data Scientist       screening  2026-03-05  2026-03-24  Pune
+ 8  Orchid Example Works       NLP Engineer Intern         rejected   2026-03-09  -           Mumbai
+ 9  Tidewater Demo Co          Software Engineer Trainee   applied    2026-03-12  2026-03-26  Chennai
+10  Maple Placeholder AI       ML Engineer (Entry Level)   applied    2026-03-16  -           Remote
+11  Granite Fictional Systems  Data Engineer Trainee       saved      -           -           Pune
+12  Willow Mock Robotics       Computer Vision Intern      saved      -           -           Bengaluru
+
+12 applications
+
+$ jobtrack list --status applied,screening
+ID  Company                  Role                        Status     Applied     Follow-up   Location
+--  -----------------------  --------------------------  ---------  ----------  ----------  ---------
+ 3  Cedar Demo Analytics     Data Analyst                screening  2026-02-18  2026-03-18  Mumbai
+ 4  Harbor Placeholder Tech  Backend Developer (Python)  applied    2026-02-20  2026-03-06  Bengaluru
+ 7  Pinecrest Sample Data    Junior Data Scientist       screening  2026-03-05  2026-03-24  Pune
+ 9  Tidewater Demo Co        Software Engineer Trainee   applied    2026-03-12  2026-03-26  Chennai
+10  Maple Placeholder AI     ML Engineer (Entry Level)   applied    2026-03-16  -           Remote
+
+5 applications
+
+$ jobtrack list --search remote --from 2026-03-01
+ID  Company               Role                       Status     Applied     Follow-up  Location
+--  --------------------  -------------------------  ---------  ----------  ---------  --------
+ 6  Quartz Mock Software  Python Developer           withdrawn  2026-03-02  -          Remote
+10  Maple Placeholder AI  ML Engineer (Entry Level)  applied    2026-03-16  -          Remote
+
+2 applications
+
+$ jobtrack list --company example --sort applied --desc
+ID  Company                Role                     Status    Applied     Follow-up  Location
+--  ---------------------  -----------------------  --------  ----------  ---------  --------
+ 8  Orchid Example Works   NLP Engineer Intern      rejected  2026-03-09  -          Mumbai
+ 1  Northwind Example Ltd  Junior Python Developer  offer     2026-02-10  -          Pune
+
+2 applications
+
+$ jobtrack show 1
+Application 1
+  Company:         Northwind Example Ltd
+  Role:            Junior Python Developer
+  Status:          offer
+  Applied:         2026-02-10
+  First response:  2026-02-17
+  Follow-up:       -
+  Location:        Pune
+  Source:          job board
+  Link:            https://example.com/jobs/1
+  Notes:           synthetic sample
+
+History
+  2026-02-10  added as applied
+  2026-02-17  applied -> screening  (phone screen booked)
+  2026-02-26  screening -> interview
+  2026-03-12  interview -> offer
+
+## Follow-ups that are due
+
+$ jobtrack due
+Follow-ups as of 2026-03-20:
+
+ID  Company                  Role                        Status     Follow-up   Due
+--  -----------------------  --------------------------  ---------  ----------  ------------------
+ 4  Harbor Placeholder Tech  Backend Developer (Python)  applied    2026-03-06  overdue by 14 days
+ 3  Cedar Demo Analytics     Data Analyst                screening  2026-03-18  overdue by 2 days
+ 5  Lumen Fictional Labs     AI Engineer (Fresher)       interview  2026-03-20  due today
+
+2 overdue, 1 due today
+
+$ jobtrack due --within 7
+Follow-ups as of 2026-03-20:
+
+ID  Company                  Role                        Status     Follow-up   Due
+--  -----------------------  --------------------------  ---------  ----------  ------------------
+ 4  Harbor Placeholder Tech  Backend Developer (Python)  applied    2026-03-06  overdue by 14 days
+ 3  Cedar Demo Analytics     Data Analyst                screening  2026-03-18  overdue by 2 days
+ 5  Lumen Fictional Labs     AI Engineer (Fresher)       interview  2026-03-20  due today
+ 7  Pinecrest Sample Data    Junior Data Scientist       screening  2026-03-24  in 4 days
+ 9  Tidewater Demo Co        Software Engineer Trainee   applied    2026-03-26  in 6 days
+
+2 overdue, 1 due today, 2 upcoming
+
+## Summary
+
+$ jobtrack summary
+Applications: 12
+
+Status     Count
+---------  -----
+saved          2
+applied        3
+screening      2
+interview      1
+offer          1
+rejected       2
+withdrawn      1
+
+Response rate: 60.0% (6 of 10 applied got a response)
+Average days from applied to first response: 10.8 (based on 6 applications)
+
+$ jobtrack summary --from 2026-03-01
+Applications: 5
+Only applications applied on or after 2026-03-01 are counted.
+
+Status     Count
+---------  -----
+saved          0
+applied        2
+screening      1
+interview      0
+offer          0
+rejected       1
+withdrawn      1
+
+Response rate: 40.0% (2 of 5 applied got a response)
+Average days from applied to first response: 10.5 (based on 2 applications)
+
+## Edit
+
+$ jobtrack edit 9 --location "Chennai (hybrid)" --source ""
+Updated application 9: location, source.
+
+Application 9
+  Company:         Tidewater Demo Co
+  Role:            Software Engineer Trainee
+  Status:          applied
+  Applied:         2026-03-12
+  First response:  -
+  Follow-up:       2026-03-26
+  Location:        Chennai (hybrid)
+  Source:          -
+  Link:            https://example.com/jobs/9
+  Notes:           synthetic sample
+
+## Mistakes are refused with a message
+
+$ jobtrack add --company "Typo Example Co" --role Developer --date-applied 12/03/2026
+Error: Invalid applied date '12/03/2026'. Use YYYY-MM-DD (for example 2026-03-20) or 'today'.
+(exit code 1)
+
+$ jobtrack status 4 intervew
+Error: Unknown status 'intervew'. Did you mean 'interview'? Valid statuses: saved, applied, screening, interview, offer, rejected, withdrawn.
+(exit code 1)
+
+$ jobtrack status 1 applied
+Error: Cannot move from 'offer' to 'applied': from 'offer' the next status can be: rejected, withdrawn. Use --force if you are correcting a mistake.
+(exit code 1)
+
+$ jobtrack status 2 interview
+Error: Cannot move from 'rejected' to 'interview': 'rejected' is a closed status, so it normally does not change. Use --force if you are correcting a mistake.
+(exit code 1)
+
+$ jobtrack followup 4 "next week"
+Error: Invalid follow-up date 'next week'. Use YYYY-MM-DD (for example 2026-03-20), 'today' or +7d.
+(exit code 1)
+
+$ jobtrack show 99
+Error: No application with id 99. Run 'jobtrack list' to see the ids.
+(exit code 1)
+
+## Correct a wrong entry with --force
+
+$ jobtrack status 2 interview --force --note "rejection was entered by mistake"
+Application 2: rejected -> interview on 2026-03-20.
+
+$ jobtrack show 2
+Application 2
+  Company:         Bluefield Sample Systems
+  Role:            ML Engineer Intern
+  Status:          interview
+  Applied:         2026-02-12
+  First response:  2026-02-24
+  Follow-up:       -
+  Location:        Remote
+  Source:          referral
+  Link:            https://example.com/jobs/2
+  Notes:           synthetic sample
+
+History
+  2026-02-12  added as applied
+  2026-02-24  applied -> rejected
+  2026-03-20  rejected -> interview  (rejection was entered by mistake)
+
+## Export and import
+
+$ jobtrack export applications.csv
+Exported 12 applications to applications.csv.
+
+# first 4 lines of applications.csv
+id,company,role,link,location,source,status,date_applied,follow_up_date,first_response_date,notes
+1,Northwind Example Ltd,Junior Python Developer,https://example.com/jobs/1,Pune,job board,offer,2026-02-10,,2026-02-17,synthetic sample
+2,Bluefield Sample Systems,ML Engineer Intern,https://example.com/jobs/2,Remote,referral,interview,2026-02-12,,2026-02-24,synthetic sample
+3,Cedar Demo Analytics,Data Analyst,https://example.com/jobs/3,Mumbai,company site,screening,2026-02-18,2026-03-18,2026-03-03,synthetic sample
+
+$ jobtrack export applications.csv
+Error: 'applications.csv' already exists. Use --overwrite to replace it.
+(exit code 1)
+
+$ jobtrack --db second.db import applications.csv --dry-run
+Dry run: 12 applications would be imported, 0 duplicates skipped. Nothing was stored.
+
+$ jobtrack --db second.db import applications.csv
+Imported 12 applications from applications.csv, skipped 0 duplicates.
+
+$ jobtrack --db second.db import applications.csv
+Imported 0 applications from applications.csv, skipped 12 duplicates.
+
+$ jobtrack --db second.db summary
+Applications: 12
+
+Status     Count
+---------  -----
+saved          2
+applied        3
+screening      2
+interview      2
+offer          1
+rejected       1
+withdrawn      1
+
+Response rate: 60.0% (6 of 10 applied got a response)
+Average days from applied to first response: 10.8 (based on 6 applications)
+
+## Delete, with confirmation
+
+$ echo n | jobtrack delete 12
+Application 12
+  Company:         Willow Mock Robotics
+  Role:            Computer Vision Intern
+  Status:          saved
+  Applied:         -
+  First response:  -
+  Follow-up:       -
+  Location:        Bengaluru
+  Source:          referral
+  Link:            https://example.com/jobs/12
+  Notes:           synthetic sample
+
+Delete this application? This cannot be undone. [y/N]: Nothing deleted.
+
+$ jobtrack delete 12 --yes
+Deleted application 12: Computer Vision Intern at Willow Mock Robotics.
+
+$ jobtrack list --status saved
+ID  Company                    Role                   Status  Applied  Follow-up  Location
+--  -------------------------  ---------------------  ------  -------  ---------  --------
+11  Granite Fictional Systems  Data Engineer Trainee  saved   -        -          Pune
+
+1 application
