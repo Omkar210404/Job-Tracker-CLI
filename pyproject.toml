@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "job-tracker-cli"
+version = "0.1.0"
+description = "Command-line tool to track job applications in a local SQLite file."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Omkar Satish Nikam" }]
+dependencies = ["typer>=0.27"]
+
+[project.scripts]
+jobtrack = "jobtracker.cli:app"
+
+[tool.setuptools]
+packages = ["jobtracker"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
