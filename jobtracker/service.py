@@ -21,6 +21,7 @@ from jobtracker.models import (
     NewApplication,
     Status,
     StatusChange,
+    Summary,
 )
 from jobtracker.validation import clean_optional, require_text
 
@@ -328,6 +329,50 @@ class TrackerService:
             for app in candidates
             if app.status not in CLOSED_STATUSES
         ]
+
+    # --- summary ------------------------------------------------------------
+
+    def summary(self, *, date_from: date | None = None, date_to: date | None = None) -> Summary:
+        """Counts and rates from the stored applications, nothing else.
+
+        - applied: applications that have an applied date ('saved' ones do not).
+        - responded: applied applications that have a first response date or
+          are currently in a response status (screening, interview, offer, rejected).
+        - response rate: responded / applied, None when nothing was applied.
+        - average days to first response: mean of first response date minus
+          applied date over the responded applications that have both dates.
+
+        With a date range only applications applied inside it are counted.
+        """
+        _check_range(date_from, date_to)
+        apps = db.query_applications(self.conn, date_from=date_from, date_to=date_to)
+
+        by_status = {status: 0 for status in Status}
+        for app in apps:
+            by_status[app.status] += 1
+
+        applied = [app for app in apps if app.date_applied is not None]
+        responded = [
+            app
+            for app in applied
+            if app.first_response_date is not None or app.status in RESPONSE_STATUSES
+        ]
+        waits = [
+            (app.first_response_date - app.date_applied).days
+            for app in responded
+            if app.first_response_date is not None
+        ]
+        return Summary(
+            total=len(apps),
+            by_status=by_status,
+            applied=len(applied),
+            responded=len(responded),
+            response_rate=len(responded) / len(applied) if applied else None,
+            avg_days_to_first_response=sum(waits) / len(waits) if waits else None,
+            avg_based_on=len(waits),
+            date_from=date_from,
+            date_to=date_to,
+        )
 
 
 def _check_range(date_from: date | None, date_to: date | None) -> None:
