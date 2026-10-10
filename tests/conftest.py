@@ -4,6 +4,9 @@ from datetime import date
 
 import pytest
 
+from jobtracker import db
+from jobtracker.service import TrackerService
+
 # A fixed "today" so no test depends on the clock.
 TODAY = date(2026, 3, 20)
 
@@ -11,6 +14,18 @@ TODAY = date(2026, 3, 20)
 @pytest.fixture
 def today():
     return TODAY
+
+
+@pytest.fixture
+def conn(tmp_path):
+    connection = db.connect(tmp_path / "test.db")
+    yield connection
+    connection.close()
+
+
+@pytest.fixture
+def svc(conn):
+    return TrackerService(conn)
 
 
 @pytest.fixture(autouse=True)
