@@ -18,6 +18,7 @@ from jobtracker.models import (
     RESPONSE_STATUSES,
     Application,
     DueItem,
+    ImportResult,
     NewApplication,
     Status,
     StatusChange,
@@ -27,6 +28,10 @@ from jobtracker.validation import clean_optional, require_text
 
 # Marks "leave this field alone" in edit(), because None already means "clear it".
 UNSET = object()
+
+# History note on applications that came from a CSV file. Their earlier status
+# changes are unknown, so the history starts on the day of the import.
+IMPORT_NOTE = "imported from CSV"
 
 
 def _now() -> str:
@@ -137,6 +142,35 @@ class TrackerService:
             note=note,
         )
         return app_id
+
+    def import_applications(
+        self, rows: list[NewApplication], *, today: date, dry_run: bool = False
+    ) -> ImportResult:
+        """Insert rows that already passed check_new, all of them or none.
+
+        A row matching a stored application on company, role and applied date
+        is skipped, which also catches a row repeated inside the same file.
+        With `dry_run` the work is rolled back, so the counts are exact but
+        nothing is stored.
+        """
+        imported = skipped = 0
+        try:
+            for new in rows:
+                if db.find_duplicate(self.conn, new.company, new.role, new.date_applied):
+                    skipped += 1
+                    continue
+                self._insert(new, changed_on=today, note=IMPORT_NOTE)
+                imported += 1
+        except Exception:
+            self.conn.rollback()
+            raise
+        if dry_run:
+            self.conn.rollback()
+        else:
+            self.conn.commit()
+        return ImportResult(
+            rows_read=len(rows), imported=imported, skipped_duplicates=skipped, dry_run=dry_run
+        )
 
     # --- reading ------------------------------------------------------------
 
